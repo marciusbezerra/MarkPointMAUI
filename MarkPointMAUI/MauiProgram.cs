@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using Microsoft.Maui.Controls.Maps;
+using MarkPointMAUI.Data;
 
 namespace MarkPointMAUI
 {
@@ -16,6 +16,8 @@ namespace MarkPointMAUI
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 });
+
+            builder.Services.AddSingleton<IMarkedPointRepository, MarkedPointDatabase>();
 
 #if DEBUG
             builder.Logging.AddDebug();
