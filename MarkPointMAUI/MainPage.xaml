@@ -2,9 +2,16 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:maps="clr-namespace:Microsoft.Maui.Controls.Maps;assembly=Microsoft.Maui.Controls.Maps"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:Class="MarkPointMAUI.MainPage"
              xmlns:local="clr-namespace:MarkPointMAUI"
              x:DataType="local:MainPageViewModel">
+
+    <ContentPage.Behaviors>
+        <!-- Set the color and style -->
+        <toolkit:StatusBarBehavior StatusBarColor="White" StatusBarStyle="DarkContent" />
+    </ContentPage.Behaviors>
+    
     <Grid RowDefinitions="*,Auto,Auto"
           ColumnDefinitions="*">
         <WebView x:Name="MapView"

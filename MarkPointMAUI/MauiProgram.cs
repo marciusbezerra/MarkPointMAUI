@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using MarkPointMAUI.Data;
+using CommunityToolkit.Maui;
 
 namespace MarkPointMAUI
 {
@@ -11,6 +12,7 @@ namespace MarkPointMAUI
             builder
                 .UseMauiApp<App>()
                 .UseMauiMaps()
+                .UseMauiCommunityToolkit()
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");

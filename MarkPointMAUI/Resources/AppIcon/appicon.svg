@@ -1,4 +1,22 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg width="456" height="456" viewBox="0 0 456 456" version="1.1" xmlns="http://www.w3.org/2000/svg">
-    <rect x="0" y="0" width="456" height="456" fill="#512BD4" />
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- Background rounded square -->
+  <rect width="100%" height="100%" rx="128" ry="128" fill="#512BD4"/>
+  <!-- Subtle map grid lines -->
+  <g fill="none" stroke="#6E57E6" stroke-width="12" opacity="0.08">
+    <path d="M128 256h768"/>
+    <path d="M128 512h768"/>
+    <path d="M128 768h768"/>
+    <path d="M256 128v768"/>
+    <path d="M512 128v768"/>
+    <path d="M768 128v768"/>
+  </g>
+  <!-- Location pin foreground (white) -->
+  <g transform="translate(0, -24)">
+    <path d="M512 192c-88.22 0-160 71.78-160 160 0 122.88 160 360 160 360s160-237.12 160-360c0-88.22-71.78-160-160-160zm0 240a80 80 0 1 1 0-160 80 80 0 0 1 0 160z" fill="#FFFFFF"/>
+  </g>
+  <!-- Small star to indicate favorite -->
+  <g transform="translate(640,220) scale(0.9)" fill="#FFD54F" stroke="#F7C948" stroke-width="6">
+    <path d="M16 0 L20 11 L32 12 L22 19 L25 30 L16 24 L7 30 L10 19 L0 12 L12 11 Z" transform="scale(6) translate(-4,-1)"/>
+  </g>
 </svg>
