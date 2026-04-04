@@ -5,15 +5,42 @@
     using System.Text;
     using Microsoft.Maui.Controls;
     using System.Collections.ObjectModel;
+    using MarkPointMAUI.Data;
+    using MarkPointMAUI.Models;
+    using System.Diagnostics;
+    using System.ComponentModel;
 
     public class MainPageViewModel
     {
-        public ObservableCollection<string> Points { get; } = [];
+        public ObservableCollection<MakedPointViewModel> Points { get; } = new ObservableCollection<MakedPointViewModel>();
+    }
+
+    public class MakedPointViewModel: MarkedPoint, INotifyPropertyChanged
+    {
+        public string DisplayText => Name ?? $"{Lat:F6}, {Long:F6}";
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        public new string? Name
+        {
+            get => base.Name;
+            set
+            {
+                if (base.Name != value)
+                {
+                    base.Name = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Name)));
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DisplayText)));
+                }
+            }
+        }
     }
 
     public partial class MainPage : ContentPage
     {
         private MainPageViewModel viewModel = new MainPageViewModel();
+        private readonly IMarkedPointRepository _repository = new MarkedPointDatabase();
+        CancellationTokenSource? _cts;
 
         public MainPage()
         {
@@ -27,28 +54,101 @@
 
             try
             {
-                var status = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
-                if (status != PermissionStatus.Granted)
-                    return;
+                await StartLocationUpdates();
 
-                var request = new GeolocationRequest(GeolocationAccuracy.Best);
-                var location = await Geolocation.GetLocationAsync(request);
-                // Load the HTML map and center at current location
-                var html = BuildMapHtml(location?.Latitude ?? 0, location?.Longitude ?? 0);
-                MapView.Source = new HtmlWebViewSource { Html = html };
-
-                if (location != null)
+                // Load saved points from repository and populate the view model
+                var saved = await _repository.GetPointsAsync();
+                foreach (var p in saved)
                 {
-                    var coord = $"{location.Latitude:F6}, {location.Longitude:F6}";
-                    // add initial marker via JS after a short delay to ensure the page loaded
-                    await Task.Delay(500);
-                    await MapView.EvaluateJavaScriptAsync($"addMarker({location.Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}, {location.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)});");
+                    viewModel.Points.Add(new MakedPointViewModel
+                    {
+                        Id = p.Id,
+                        Name = p.Name,
+                        Lat = p.Lat,
+                        Long = p.Long
+                    });
                 }
             }
             catch (Exception ex)
             {
                 await DisplayAlertAsync("Erro", $"Ocorreu um erro: {ex.Message}", "OK");
             }
+        }
+
+        protected override void OnDisappearing()
+        {
+            StopLocationUpdates();
+            base.OnDisappearing();
+        }
+
+        async Task StartLocationUpdates()
+        {
+            var status = await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>();
+            if (status != PermissionStatus.Granted)
+                status = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
+            if (status != PermissionStatus.Granted)
+                return;
+
+            try
+            {
+                var last = await Geolocation.GetLastKnownLocationAsync();
+                var lat = last?.Latitude ?? 0;
+                var lon = last?.Longitude ?? 0;
+                var html = BuildMapHtml(lat, lon);
+                MapView.Source = new HtmlWebViewSource { Html = html };
+                if (last != null)
+                {
+                    await Task.Delay(500);
+                    await MapView.EvaluateJavaScriptAsync($"addMarker({last.Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}, {last.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)});");
+                }
+            }
+            catch { }
+
+            _cts = new CancellationTokenSource();
+
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    while (!_cts.IsCancellationRequested)
+                    {
+                        try
+                        {
+                            var request = new GeolocationRequest(GeolocationAccuracy.Medium, TimeSpan.FromSeconds(8));
+                            var loc = await Geolocation.GetLocationAsync(request, _cts.Token);
+                            if (loc != null)
+                            {
+                                MainThread.BeginInvokeOnMainThread(async () => UpdateLocation(loc));
+                            }
+                        }
+                        catch (OperationCanceledException) { break; }
+                        catch (Exception ex) { 
+                            /* loga erro, pelo menos... */ 
+                            Debug.WriteLine($"Erro ao obter localização: {ex.Message}");
+                        }
+
+                        await Task.Delay(TimeSpan.FromSeconds(10), _cts.Token);
+                    }
+                }
+                catch { }
+            });
+        }
+
+        void StopLocationUpdates()
+        {
+            if (_cts == null) return;
+            if (!_cts.IsCancellationRequested) _cts.Cancel();
+            _cts.Dispose();
+            _cts = null;
+        }
+
+        async void UpdateLocation(Location loc)
+        {
+            try
+            {
+                await MapView.EvaluateJavaScriptAsync($"addMarker({loc.Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}, {loc.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)});");
+            }
+            catch { }
         }
 
         private async void OnMarkPointClicked(object sender, EventArgs e)
@@ -59,18 +159,75 @@
                 if (status != PermissionStatus.Granted)
                     return;
 
-                var request = new GeolocationRequest(GeolocationAccuracy.Best);
-                var location = await Geolocation.GetLocationAsync(request);
+                Location? location = null;
+
+                location = await Geolocation.GetLastKnownLocationAsync();
+
+                if (location == null)
+                {
+                    var request = new GeolocationRequest(GeolocationAccuracy.Best);
+                    location = await Geolocation.GetLocationAsync(request);
+                }
+
                 if (location != null)
                 {
-                    var text = $"{location.Latitude:F6}, {location.Longitude:F6}";
-                    viewModel.Points.Add(text);
-                    await DisplayAlertAsync("Atenção", "Seu ponto foi salvo com sucesso!", "OK");
+                        var model = new MarkedPoint
+                        {
+                            Lat = location.Latitude,
+                            Long = location.Longitude
+                        };
+
+                        await _repository.SavePointAsync(model);
+
+                        var newMarkedPoint = new MakedPointViewModel
+                        {
+                            Id = model.Id,
+                            Lat = model.Lat,
+                            Long = model.Long
+                        };
+                        viewModel.Points.Add(newMarkedPoint);
                 }
             }
             catch (Exception ex)
             {
                 await DisplayAlertAsync("Erro", $"Ocorreu um erro: {ex.Message}", "OK");
+            }
+        }
+
+        private async void OnEditClicked(object sender, EventArgs e)
+        {
+            if (sender is Button btn && btn.BindingContext is MakedPointViewModel point)
+            {
+                var newName = await DisplayPromptAsync("Editar Ponto", "Digite um nome para este ponto:", initialValue: point.DisplayText);
+                if (!string.IsNullOrWhiteSpace(newName))
+                {
+                    try
+                    {
+                        // Save plain model so SQLite uses the correct table
+                        var model = new MarkPointMAUI.Models.MarkedPoint
+                        {
+                            Id = point.Id,
+                            Name = newName,
+                            Lat = point.Lat,
+                            Long = point.Long
+                        };
+                        await _repository.SavePointAsync(model);
+                        point.Name = newName;
+                    }
+                    catch (Exception ex)
+                    {
+                        await DisplayAlertAsync("Erro", ex.Message, "OK");
+                    }
+                }
+            }
+        }
+
+        private async void OnNavigateClicked(object sender, EventArgs e)
+        {
+            if (sender is Button btn && btn.BindingContext is MakedPointViewModel point)
+            {
+                var uri = new Uri($"geo:{point.Lat.ToString(System.Globalization.CultureInfo.InvariantCulture)},{point.Long.ToString(System.Globalization.CultureInfo.InvariantCulture)}?q={point.Lat.ToString(System.Globalization.CultureInfo.InvariantCulture)},{point.Long.ToString(System.Globalization.CultureInfo.InvariantCulture)}({Uri.EscapeDataString(point.DisplayText)})");
+                await Launcher.OpenAsync(uri);
             }
         }
 

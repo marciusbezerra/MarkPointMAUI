@@ -16,12 +16,35 @@
                 Clicked="OnMarkPointClicked" />
         <CollectionView x:Name="PointsList"
                         Grid.Row="2"
-                        HeightRequest="150"
-                        Margin="20"
+                        HeightRequest="250"
+                        Margin="10"
                         ItemsSource="{Binding Points}">
             <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="x:String">
-                    <Label Text="{Binding .}" />
+                <DataTemplate x:DataType="local:MakedPointViewModel">
+                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10" Padding="0, 2">
+                        <Label Text="{Binding DisplayText}" Grid.Column="0" VerticalOptions="Center" />
+                        <!-- botões somente ícone (usa emoji para evitar adicionar imagens/fontes) -->
+                        <Button Text="✏️"
+                                Clicked="OnEditClicked"
+                                Grid.Column="1"
+                                VerticalOptions="Center"
+                                BackgroundColor="Transparent"
+                                WidthRequest="40"
+                                HeightRequest="40"
+                                FontSize="18"
+                                CornerRadius="20"
+                                AutomationProperties.Name="Editar" />
+                        <Button Text="📍"
+                                Clicked="OnNavigateClicked"
+                                Grid.Column="2"
+                                VerticalOptions="Center"
+                                BackgroundColor="Transparent"
+                                WidthRequest="40"
+                                HeightRequest="40"
+                                FontSize="18"
+                                CornerRadius="20"
+                                AutomationProperties.Name="Ir para" />
+                    </Grid>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
