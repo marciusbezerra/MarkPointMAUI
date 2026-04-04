@@ -21,29 +21,44 @@
                         ItemsSource="{Binding Points}">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="local:MakedPointViewModel">
-                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10" Padding="0, 2">
+                    <Grid ColumnDefinitions="*,33,33,33" ColumnSpacing="10" Padding="6, 2">
                         <Label Text="{Binding DisplayText}" Grid.Column="0" VerticalOptions="Center" />
-                        <!-- botões somente ícone (usa emoji para evitar adicionar imagens/fontes) -->
                         <Button Text="✏️"
                                 Clicked="OnEditClicked"
                                 Grid.Column="1"
                                 VerticalOptions="Center"
                                 BackgroundColor="Transparent"
-                                WidthRequest="40"
-                                HeightRequest="40"
+                                WidthRequest="30"
+                                HeightRequest="30"
                                 FontSize="18"
-                                CornerRadius="20"
+                                BorderWidth="1"
+                                Padding="0"
+                                Margin="0"
                                 AutomationProperties.Name="Editar" />
                         <Button Text="📍"
                                 Clicked="OnNavigateClicked"
                                 Grid.Column="2"
                                 VerticalOptions="Center"
                                 BackgroundColor="Transparent"
-                                WidthRequest="40"
-                                HeightRequest="40"
+                                WidthRequest="30"
+                                HeightRequest="30"
                                 FontSize="18"
-                                CornerRadius="20"
+                                BorderWidth="1"
+                                Padding="0"
+                                Margin="0"
                                 AutomationProperties.Name="Ir para" />
+                        <Button Text="🗑️"
+                                Clicked="OnDeleteClicked"
+                                Grid.Column="3"
+                                VerticalOptions="Center"
+                                BackgroundColor="Transparent"
+                                WidthRequest="30"
+                                HeightRequest="30"
+                                FontSize="18"
+                                BorderWidth="1"
+                                Padding="0"
+                                Margin="0"
+                                AutomationProperties.Name="Excluir" />
                     </Grid>
                 </DataTemplate>
             </CollectionView.ItemTemplate>

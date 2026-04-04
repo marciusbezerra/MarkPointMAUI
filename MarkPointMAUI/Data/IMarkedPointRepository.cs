@@ -7,6 +7,6 @@ namespace MarkPointMAUI.Data
         Task<List<MarkedPoint>> GetPointsAsync();
         Task<MarkedPoint> GetPointAsync(int id);
         Task<int> SavePointAsync(MarkedPoint point);
-        Task<int> DeletePointAsync(MarkedPoint point);
+        Task<int> DeletePointByIdAsync(int pointId);
     }
 }

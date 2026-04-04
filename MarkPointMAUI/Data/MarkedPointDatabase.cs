@@ -32,9 +32,9 @@ namespace MarkPointMAUI.Data
             return _database.UpdateAsync(point);
         }
 
-        public Task<int> DeletePointAsync(MarkedPoint point)
+        public Task<int> DeletePointByIdAsync(int pointId)
         {
-            return _database.DeleteAsync(point);
+            return _database.DeleteAsync(new MarkedPoint { Id = pointId });
         }
     }
 }

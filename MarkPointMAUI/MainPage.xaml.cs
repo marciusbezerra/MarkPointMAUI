@@ -9,6 +9,7 @@
     using MarkPointMAUI.Models;
     using System.Diagnostics;
     using System.ComponentModel;
+    using System.Globalization;
 
     public class MainPageViewModel
     {
@@ -222,11 +223,31 @@
             }
         }
 
+        private async void OnDeleteClicked(object sender, EventArgs e)
+        {
+            if (sender is Button btn && btn.BindingContext is MakedPointViewModel point)
+            {
+                var confirm = await DisplayAlertAsync("Confirmar", "Deseja realmente excluir este ponto?", "Sim", "Não");
+                if (confirm)
+                {
+                    try
+                    {
+                        await _repository.DeletePointByIdAsync(point.Id);
+                        viewModel.Points.Remove(point);
+                    }
+                    catch (Exception ex)
+                    {
+                        await DisplayAlertAsync("Erro", ex.Message, "OK");
+                    }
+                }
+            }
+        }
+
         private async void OnNavigateClicked(object sender, EventArgs e)
         {
             if (sender is Button btn && btn.BindingContext is MakedPointViewModel point)
             {
-                var uri = new Uri($"geo:{point.Lat.ToString(System.Globalization.CultureInfo.InvariantCulture)},{point.Long.ToString(System.Globalization.CultureInfo.InvariantCulture)}?q={point.Lat.ToString(System.Globalization.CultureInfo.InvariantCulture)},{point.Long.ToString(System.Globalization.CultureInfo.InvariantCulture)}({Uri.EscapeDataString(point.DisplayText)})");
+                var uri = new Uri($"geo:{point.Lat.ToString(CultureInfo.InvariantCulture)},{point.Long.ToString(CultureInfo.InvariantCulture)}?q={point.Lat.ToString(CultureInfo.InvariantCulture)},{point.Long.ToString(CultureInfo.InvariantCulture)}({Uri.EscapeDataString(point.DisplayText)})");
                 await Launcher.OpenAsync(uri);
             }
         }
