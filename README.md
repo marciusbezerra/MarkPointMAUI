@@ -4,7 +4,7 @@
 
 ## Overview
 
-MarkPointMAUI is a .NET MAUI sample/application that demonstrates a modern cross-platform UI built with .NET 10 and .NET Multi-platform App UI (MAUI). The project is intended as a starting point for developers who want a lightweight, maintainable MAUI app targeting Windows, Android, and iOS (where supported).
+This is a .NET MAUI app (net10) called MarkPointMAUI that allows you to capture, view, and manage locally marked geographic points. A .NET MAUI sample/application that demonstrates a modern cross-platform UI built with .NET 10 and .NET Multi-platform App UI (MAUI). The project is intended as a starting point for developers who want a lightweight, maintainable MAUI app targeting Windows, Android, and iOS (where supported).
 
 This repository contains the application source, XAML UI pages, resources, and platform-specific configuration files required to build and run the app using Visual Studio or the .NET CLI (with the required workloads).
 
