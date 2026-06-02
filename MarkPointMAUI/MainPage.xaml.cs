@@ -245,10 +245,19 @@
 
         private async void OnNavigateClicked(object sender, EventArgs e)
         {
-            if (sender is Button btn && btn.BindingContext is MakedPointViewModel point)
+            try
             {
-                var uri = new Uri($"geo:{point.Lat.ToString(CultureInfo.InvariantCulture)},{point.Long.ToString(CultureInfo.InvariantCulture)}?q={point.Lat.ToString(CultureInfo.InvariantCulture)},{point.Long.ToString(CultureInfo.InvariantCulture)}({Uri.EscapeDataString(point.DisplayText)})");
-                await Launcher.OpenAsync(uri);
+                if (sender is Button btn && btn.BindingContext is MakedPointViewModel point)
+                {
+                    if (!await DisplayAlertAsync("Navegar", $"Deseja abrir este ponto no aplicativo de mapas?", "Sim", "Não"))
+                        return;
+                    var uri = new Uri($"https://www.google.com/maps/search/?api=1&query={point.Lat.ToString(CultureInfo.InvariantCulture)},{point.Long.ToString(CultureInfo.InvariantCulture)}");
+                    await Launcher.OpenAsync(uri);
+                }
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlertAsync("Erro", ex.Message, "OK");
             }
         }
 
